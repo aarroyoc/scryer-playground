@@ -11,14 +11,22 @@ window.onload = () => {
     const query = document.getElementById("query");
     const execute = document.getElementById("execute");
 
+    query.onkeypress = (event) => {
+	if(event.key === "Enter") {
+	    event.preventDefault();
+	    execute.click();
+	}
+    };
+
     execute.onclick = () => {
 	if(!ready){
 	    alert("Scryer Prolog WASM not loaded yet");
 	} else {
+	    const queryStr = query.value.replaceAll("\"", "\\\"");
 	    const code = source.value + `
 :- initialization(playground_main).
 :- use_module(library(charsio)).
-playground_main :- QueryStr = "${query.value}", read_term_from_chars(QueryStr, Query, [variable_names(Vars)]), call(Query), write(Vars).`
+playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Query, [variable_names(Vars)]), call(Query), write(Vars).`
 	    console.log(code);
 	    const result = eval_code(code);
 	    console.log(result);
