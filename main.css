@@ -1,0 +1,37 @@
+body {
+    font-family: "Iosevka Prolog";
+}
+
+h1 {
+  border-bottom-color: #00007F;
+  border-bottom-style: solid;
+  border-bottom-width: 10px;
+}
+
+textarea, input {
+  font-family: "Iosevka Prolog";
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 70svh;
+}
+
+#source {
+  
+}
+
+#execution {
+  margin-left: 10px;
+}
+
+.output {
+  margin-left: 20px;
+}
+
+
+@font-face {
+    src: url("iosevka-fixed-slab-regular.woff2") format("woff2");
+    font-family: "Iosevka Prolog";
+}

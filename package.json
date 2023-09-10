@@ -1,0 +1,28 @@
+{
+  "name": "scryer-prolog",
+  "collaborators": [
+    "Mark Thom <markjordanthom@gmail.com>"
+  ],
+  "description": "A modern Prolog implementation written mostly in Rust.",
+  "version": "0.9.2",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mthom/scryer-prolog"
+  },
+  "files": [
+    "scryer_prolog_bg.wasm",
+    "scryer_prolog.js",
+    "scryer_prolog.d.ts"
+  ],
+  "module": "scryer_prolog.js",
+  "types": "scryer_prolog.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ],
+  "keywords": [
+    "prolog",
+    "prolog-interpreter",
+    "prolog-system"
+  ]
+}
