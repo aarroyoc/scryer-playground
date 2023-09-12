@@ -26,7 +26,7 @@ window.onload = () => {
 	    const code = source.value + `
 :- initialization(playground_main).
 :- use_module(library(charsio)).
-playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Query, [variable_names(Vars)]), call(Query), write(Vars).`
+playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Query, [variable_names(Vars)]), call(Query), write_term(Vars, [double_quotes(true)]).`
 	    console.log(code);
 	    const result = eval_code(code);
 	    console.log(result);
@@ -43,7 +43,7 @@ playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Quer
 		historyOutput.textContent = "false.";
 	    }
 	    element.appendChild(historyOutput);
-	    history.prepend(element);
+	    history.appendChild(element);
 	}
     };
 };
