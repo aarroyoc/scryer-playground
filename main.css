@@ -1,4 +1,4 @@
-body {
+body, pre {
     font-family: "Iosevka Prolog";
 }
 
@@ -27,7 +27,7 @@ main {
 }
 
 .output {
-  margin-left: 20px;
+  margin-left: 30px;
 }
 
 

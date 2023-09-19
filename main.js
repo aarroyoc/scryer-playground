@@ -35,7 +35,7 @@ playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Quer
 	    const historyQuery = document.createElement("div");
 	    historyQuery.textContent = `?- ${query.value}`;
 	    element.appendChild(historyQuery);
-	    const historyOutput = document.createElement("div");
+	    const historyOutput = document.createElement("pre");
 	    historyOutput.className = "output";
 	    if(result.search(regex) == -1) {
 		historyOutput.textContent = result;
