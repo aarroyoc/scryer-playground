@@ -24,6 +24,8 @@ main {
 
 #execution {
   margin-left: 10px;
+  max-width: 100%;
+  overflow: scroll;    
 }
 
 .output {
