@@ -22,7 +22,9 @@ window.onload = () => {
 	if(!ready){
 	    alert("Scryer Prolog WASM not loaded yet");
 	} else {
-	    const queryStr = query.value.replaceAll("\"", "\\\"");
+	    const queryStr = query.value
+	          .replaceAll("\\", "\\\\")
+		  .replaceAll("\"", "\\\"");
 	    const code = source.value + `
 :- initialization(playground_main).
 :- use_module(library(charsio)).
