@@ -43,7 +43,7 @@ playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Quer
 		historyOutput.textContent = "false.";
 	    }
 	    element.appendChild(historyOutput);
-	    history.appendChild(element);
+	    history.prepend(element);
 	}
     };
 };
