@@ -46,3 +46,8 @@ main {
   max-height: inherit;
   overflow-y: scroll;
 }
+
+#result {
+  padding-top: 10px;
+  border-bottom: 1px solid black;
+}
