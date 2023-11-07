@@ -25,7 +25,10 @@ main {
 #execution {
   margin-left: 10px;
   max-width: 100%;
-  overflow: scroll;    
+  max-height: 80svh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .output {
@@ -36,4 +39,15 @@ main {
 @font-face {
     src: url("iosevka-fixed-slab-regular.woff2") format("woff2");
     font-family: "Iosevka Prolog";
+}
+
+#history {
+  padding-top: 10px;
+  max-height: inherit;
+  overflow-y: scroll;
+}
+
+#result {
+  padding-top: 10px;
+  border-bottom: 1px solid black;
 }
