@@ -10,7 +10,6 @@ window.onload = () => {
     const history = document.getElementById("history");
     const query = document.getElementById("query");
     const execute = document.getElementById("execute");
-    const resultelem = document.getElementById("result");
 
     query.onkeypress = (event) => {
 	if(event.key === "Enter") {
@@ -46,11 +45,8 @@ playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Quer
 		historyOutput.textContent = "false.";
 	    }
 	    element.appendChild(historyOutput);
-	    resultelem.replaceChildren(
-  	    historyQuery.cloneNode(true),
-  	    historyOutput.cloneNode(true)
-	    );
 	    history.appendChild(element);
+	    element.scrollIntoView(false);
 	}
     };
 };
