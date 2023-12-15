@@ -10,6 +10,8 @@ window.onload = () => {
     const history = document.getElementById("history");
     const query = document.getElementById("query");
     const execute = document.getElementById("execute");
+    const postSnippet = document.getElementById("post-snippet");
+    const snippetUrl = document.getElementById("snippet-url");
     
     const urlParams = new URLSearchParams(window.location.search);
     const snippetId = urlParams.get("snippet");
@@ -25,6 +27,23 @@ window.onload = () => {
 	    });
     }
 
+    postSnippet.onclick = () => {
+	const snippet = `${source.value}\n?- ${query.value}`;
+	fetch("https://api.scryer.pl/snippet", {
+	    method: "POST",
+	    body: snippet,
+	})
+	    .then(resp => resp.text())
+	    .then(id => {
+		const link = document.createElement("a");
+		link.href = `https://play.scryer.pl/?snippet=${id}`;
+		link.textContent = link.href;
+		snippetUrl.innerHTML = "";
+		snippetUrl.appendChild(link);
+	    });
+    };
+
+    
     query.onkeypress = (event) => {
 	if(event.key === "Enter") {
 	    event.preventDefault();
