@@ -23,7 +23,8 @@ snippet_found(Id, Content, Response) :-
 
 snippet_not_found(Id, Response) :-
     portray_clause(snippet_not_found(Id)),
-    http_status_code(Response, 404).
+    http_status_code(Response, 404),
+    http_body(Response, text("")).
 
 post_snippet(Db, Request, Response) :-
     http_headers(Request, RequestHeaders),
@@ -33,8 +34,8 @@ post_snippet(Db, Request, Response) :-
     http_body(Request, text(Content)),
     crypto_data_hash(Content, HashId, [algorithm(sha512)]),
     v_assert(Db, snippet(HashId, Content, DateTime, UserAgent)),
-    http_status_code(Response, 204),
-    http_body(Response, text("")).
+    http_status_code(Response, 201),
+    http_body(Response, text(HashId)).
 
 main :-
     portray_clause(scryer_playground_snippets(1.0, "Adrián Arroyo Calle")),
