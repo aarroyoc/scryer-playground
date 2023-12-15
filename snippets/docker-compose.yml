@@ -1,0 +1,8 @@
+version: "3.6"
+services:
+  snippet:
+    build: .
+    ports:
+      - 10006:10006
+    volumes:
+      - ./data:/opt/snippets/data
