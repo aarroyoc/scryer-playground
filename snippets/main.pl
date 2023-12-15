@@ -18,12 +18,13 @@ get_snippet(Id, Request, Response) :-
 snippet_found(Id, Content, Response) :-
     portray_clause(snippet_found(Id)),
     http_status_code(Response, 200),
-    http_headers(Response, ["content-type"-"text/x-prolog"]),
+    http_headers(Response, ["content-type"-"text/x-prolog", "access-control-allow-origin"-"https://play.scryer.pl"]),
     http_body(Response, text(Content)).
 
 snippet_not_found(Id, Response) :-
     portray_clause(snippet_not_found(Id)),
     http_status_code(Response, 404),
+    http_headers(Response, ["access-control-allow-origin"-"https://play.scryer.pl"]),    
     http_body(Response, text("")).
 
 post_snippet(Db, Request, Response) :-
@@ -35,6 +36,7 @@ post_snippet(Db, Request, Response) :-
     crypto_data_hash(Content, HashId, [algorithm(sha512)]),
     v_assert(Db, snippet(HashId, Content, DateTime, UserAgent)),
     http_status_code(Response, 201),
+    http_headers(Response, ["access-control-allow-origin"-"https://play.scryer.pl"]),    
     http_body(Response, text(HashId)).
 
 main :-

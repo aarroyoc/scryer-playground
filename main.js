@@ -10,6 +10,20 @@ window.onload = () => {
     const history = document.getElementById("history");
     const query = document.getElementById("query");
     const execute = document.getElementById("execute");
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const snippetId = urlParams.get("snippet");
+    if(snippetId !== null) {
+	fetch(`https://api.scryer.pl/snippet/${snippetId}`)
+	    .then(resp => resp.text())
+	    .then(code => {
+		const snippetCode = code.split("\n").slice(0, -1).join("\n");
+		const snippetQuery = code.split("\n").slice(-1)[0].slice(3);
+		
+		source.value = snippetCode;
+		query.value = snippetQuery;
+	    });
+    }
 
     query.onkeypress = (event) => {
 	if(event.key === "Enter") {
