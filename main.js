@@ -57,11 +57,65 @@ window.onload = () => {
 	} else {
 	    const queryStr = query.value
 	          .replaceAll("\\", "\\\\")
-		  .replaceAll("\"", "\\\"");
+            .replaceAll("\"", "\\\"");
 	    const code = source.value + `
-:- initialization(playground_main).
-:- use_module(library(charsio)).
-playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Query, [variable_names(Vars)]), call(Query), write_term(Vars, [double_quotes(true)]).`
+      :- use_module(library(charsio)).
+      :- use_module(library(iso_ext)).
+      :- use_module(library(format)).
+      :- use_module(library(dcgs)).
+      :- initialization(playground_main).
+
+      playground_main :-
+          QueryStr = "${queryStr}",
+          read_term_from_chars(QueryStr, Query, [variable_names(Vars)]),
+          bb_put(playground_first_answer, true),
+          bb_put(playground_pending, true),
+          (   setup_call_cleanup(true, Query, NotPending = true),
+              % Query succeeded
+              bb_get(playground_first_answer, FirstAnswer),
+              (   FirstAnswer == true ->
+                  format("   ", []),
+                  bb_put(playground_first_answer, false)
+              ;   true
+              ),
+              phrase(playground_answer(Vars), Answer),
+              format("~s", [Answer]),
+              (   NotPending == true ->
+                  bb_put(playground_pending, false)
+              ;   format("~n;  ", [])
+              ),
+              false
+          ;   % Query maybe failed
+              bb_get(playground_pending, Pending),
+              (   Pending == true ->
+                  % Query failed
+                  bb_get(playground_first_answer, FirstAnswer),
+                  (   FirstAnswer == true ->
+                      format("   ", []),
+                      bb_put(playground_first_answer, false)
+                  ;   true
+                  ),
+                  format("false", [])
+              ;   % Query just terminated
+                  true
+              )
+          ),
+          format(".", []).
+
+      playground_answer([]) --> "true".
+      playground_answer([Var|Vars]) -->
+          playground_answer_([Var|Vars]).
+
+      playground_answer_([]) --> "".
+      playground_answer_([VarName=Var|Vars]) -->
+          { write_term_to_chars(Var, [double_quotes(true), quoted(true)], VarChars) },
+          format_("~a = ~s", [VarName, VarChars]),
+          (   { Vars == [] } ->
+              []
+          ;   ", ",
+              playground_answer_(Vars)
+          ).
+      `;
 	    console.log(code);
 	    const result = eval_code(code);
 	    console.log(result);
