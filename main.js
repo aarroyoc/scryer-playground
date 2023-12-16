@@ -2,9 +2,6 @@ import init, { eval_code } from "./scryer_prolog.js";
 
 let ready = false;
 
-const regex = /initialization\/1 failed for/g;
-
-
 window.onload = () => {
     const source = document.getElementById("source");
     const history = document.getElementById("history");
@@ -126,11 +123,7 @@ window.onload = () => {
 	    element.appendChild(historyQuery);
 	    const historyOutput = document.createElement("pre");
 	    historyOutput.className = "output";
-	    if(result.search(regex) == -1) {
-		historyOutput.textContent = result;
-	    } else {
-		historyOutput.textContent = "false.";
-	    }
+      historyOutput.textContent = result;
 	    element.appendChild(historyOutput);
 	    history.appendChild(element);
 	    element.scrollIntoView(false);
