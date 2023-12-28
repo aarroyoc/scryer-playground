@@ -1,17 +1,17 @@
-import init, { eval_code } from "./scryer_prolog.js";
-
 let ready = false;
 
 const regex = /initialization\/1 failed for/g;
 
 
 window.onload = () => {
+    let worker = new Worker("worker.js", {type: "module"});
     const source = document.getElementById("source");
     const history = document.getElementById("history");
     const query = document.getElementById("query");
     const execute = document.getElementById("execute");
     const postSnippet = document.getElementById("post-snippet");
     const snippetUrl = document.getElementById("snippet-url");
+    const cancelRun = document.getElementById("cancel-run");
     
     const urlParams = new URLSearchParams(window.location.search);
     const snippetId = urlParams.get("snippet");
@@ -63,10 +63,22 @@ window.onload = () => {
 :- use_module(library(charsio)).
 playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Query, [variable_names(Vars)]), call(Query), write_term(Vars, [double_quotes(true)]).`
 	    console.log(code);
-	    const result = eval_code(code);
+	    document.querySelectorAll(".executing").forEach(e => e.style.display = "initial");
+	    console.log(worker);
+	    worker.postMessage({code: code});
+	}
+    };
+
+
+    const workerHandler = (e) => {
+	if(e.data.type === "ready") {
+	    ready = true;
+	}
+	if(e.data.type === "result") {
+	    const result = e.data.result;
 	    console.log(result);
- 
-	    const element = document.createElement("div");
+	    document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
+            const element = document.createElement("div");
 	    const historyQuery = document.createElement("div");
 	    historyQuery.textContent = `?- ${query.value}`;
 	    element.appendChild(historyQuery);
@@ -82,6 +94,14 @@ playground_main :- QueryStr = "${queryStr}", read_term_from_chars(QueryStr, Quer
 	    element.scrollIntoView(false);
 	}
     };
+
+    worker.onmessage = workerHandler;
+
+    cancelRun.onclick = () => {
+	worker.terminate();
+	document.querySelectorAll(".executing").forEach(e => e.style.display = "none");	
+	ready = false;
+	worker = new Worker("worker.js", {type: "module"});
+	worker.onmessage = workerHandler;
+    };
 };
-await init("./scryer_prolog_bg.wasm");
-ready = true;

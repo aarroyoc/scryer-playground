@@ -4,6 +4,8 @@
     <title>Scryer Playground - Scryer Prolog</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="main.css">
+    <link rel="modulepreload" href="worker.js">
+    <link rel="modulepreload" href="scryer_prolog.js">
     <script type="module" src="main.js"></script>
   </head>
   <body>
@@ -15,7 +17,9 @@
       <div id="execution">
 	<div id="form">
   	<label>?- </label><input type="text" id="query">
-	  <button id="execute">Execute!</button>
+	<button id="execute">Execute!</button>
+	<span class="executing">Executing...</span>
+	<a class="executing" id="cancel-run" href="javascript:void(0);">Reset execution</a>
 	</div>
 	<div id="history"></div>
       </div>
