@@ -1,4 +1,6 @@
 let ready = false;
+let executing = false;
+let executingTimer = null;
 
 window.onload = () => {
     let worker = new Worker("worker.js", {type: "module"});
@@ -51,7 +53,7 @@ window.onload = () => {
     execute.onclick = () => {
 	if(!ready){
 	    alert("Scryer Prolog WASM not loaded yet");
-	} else {
+	} else if(!executing) {
 	    const queryStr = query.value
 	          .replaceAll("\\", "\\\\")
             .replaceAll("\"", "\\\"");
@@ -114,9 +116,14 @@ window.onload = () => {
           ).
       `;
 	    console.log(code);
-	    document.querySelectorAll(".executing").forEach(e => e.style.display = "initial");
+	    executingTimer = setTimeout(() => {
+		if(executing) {
+		    document.querySelectorAll(".executing").forEach(e => e.style.display = "initial");
+		}	
+	    }, 500);
 	    console.log(worker);
 	    worker.postMessage({code: code});
+	    executing = true;
 	}
     };
 
@@ -126,6 +133,8 @@ window.onload = () => {
 	    ready = true;
 	}
 	if(e.data.type === "result") {
+	    executing = false;
+	    clearInterval(executingTimer);
 	    const result = e.data.result;
 	    console.log(result);
 	    document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
@@ -148,6 +157,7 @@ window.onload = () => {
 	worker.terminate();
 	document.querySelectorAll(".executing").forEach(e => e.style.display = "none");	
 	ready = false;
+	executing = false;
 	worker = new Worker("worker.js", {type: "module"});
 	worker.onmessage = workerHandler;
     };
