@@ -1,9 +1,156 @@
-import init, { eval_code } from "./scryer_prolog.js";
+import { init, Prolog } from "https://esm.sh/scryer@0.7.0";
 
-self.onmessage = (e) => {
-    const result = eval_code(e.data.code);
-    self.postMessage({type: "result", result: result});
+let pl = null;
+let currentQuery = null;
+let isPaused = false;
+let isStreaming = false;
+
+self.onmessage = async (e) => {
+    const { type, code, query, stepSize } = e.data;
+
+    if (type === "init") {
+        await init();
+        pl = new Prolog();
+        self.postMessage({type: "ready"});
+        return;
+    }
+
+    if (type === "execute") {
+        try {
+            // Reload source code each time
+            pl = new Prolog();
+
+            // Load standard libraries (matching original playground)
+            pl.consultText(`
+:- use_module(library(lists)).
+:- use_module(library(charsio)).
+:- use_module(library(iso_ext)).
+:- use_module(library(format)).
+:- use_module(library(dcgs)).
+            `);
+
+            // Consult the source code if provided
+            if (code && code.trim()) {
+                pl.consultText(code);
+            }
+
+            // Execute the query
+            currentQuery = pl.query(query);
+            isPaused = false;
+
+            self.postMessage({type: "query_started"});
+
+        } catch (error) {
+            self.postMessage({
+                type: "error",
+                error: error.toString()
+            });
+            currentQuery = null;
+        }
+        return;
+    }
+
+    if (type === "next") {
+        if (!currentQuery) {
+            self.postMessage({type: "complete", hasMore: false});
+            return;
+        }
+
+        try {
+            const steps = stepSize || 1;
+            let count = 0;
+
+            // Handle "all" mode
+            if (stepSize === "all") {
+                isStreaming = true;
+                for (const answer of currentQuery) {
+                    if (isPaused) {
+                        break;
+                    }
+                    self.postMessage({
+                        type: "answer",
+                        bindings: answer.bindings
+                    });
+                    count++;
+                }
+                isStreaming = false;
+
+                if (currentQuery.done || isPaused) {
+                    self.postMessage({
+                        type: "complete",
+                        hasMore: !currentQuery.done,
+                        count: count
+                    });
+                    if (currentQuery.done) {
+                        currentQuery = null;
+                    }
+                }
+            } else {
+                // Step mode (1 or 5)
+                for (let i = 0; i < steps; i++) {
+                    const result = currentQuery.next();
+
+                    if (result.done) {
+                        self.postMessage({
+                            type: "complete",
+                            hasMore: false,
+                            count: count
+                        });
+                        currentQuery = null;
+                        break;
+                    }
+
+                    self.postMessage({
+                        type: "answer",
+                        bindings: result.value.bindings
+                    });
+                    count++;
+                }
+
+                // If we finished the steps but query isn't done, send waiting status
+                if (currentQuery && !currentQuery.done) {
+                    self.postMessage({
+                        type: "waiting",
+                        hasMore: true,
+                        count: count
+                    });
+                }
+            }
+
+        } catch (error) {
+            self.postMessage({
+                type: "error",
+                error: error.toString()
+            });
+            currentQuery = null;
+        }
+        return;
+    }
+
+    if (type === "pause") {
+        isPaused = true;
+        isStreaming = false;
+        self.postMessage({type: "paused"});
+        return;
+    }
+
+    if (type === "cancel") {
+        if (currentQuery) {
+            try {
+                currentQuery.return(true);
+            } catch (e) {
+                // Ignore errors during cancellation
+            }
+            currentQuery = null;
+        }
+        isPaused = false;
+        isStreaming = false;
+        self.postMessage({type: "cancelled"});
+        return;
+    }
 };
 
-await init("./scryer_prolog_bg.wasm");
+// Initialize on load
+await init();
+pl = new Prolog();
 self.postMessage({type: "ready"});

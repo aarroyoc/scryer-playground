@@ -16,6 +16,8 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 70svh;
+  max-width: 100vw;
+  overflow: hidden;
 }
 
 #source {
@@ -29,10 +31,15 @@ main {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .output {
   margin-left: 30px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
 
@@ -44,7 +51,8 @@ main {
 #history {
   padding-top: 10px;
   max-height: inherit;
-  overflow-y: scroll;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #result {

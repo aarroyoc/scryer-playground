@@ -1,164 +1,256 @@
 let ready = false;
 let executing = false;
 let executingTimer = null;
+let currentResultDiv = null;
+let currentOutputPre = null;
+let answerCount = 0;
 
 window.onload = () => {
-    let worker = new Worker("worker.js", {type: "module"});
-    const source = document.getElementById("source");
-    const history = document.getElementById("history");
-    const query = document.getElementById("query");
-    const execute = document.getElementById("execute");
-    const postSnippet = document.getElementById("post-snippet");
-    const snippetUrl = document.getElementById("snippet-url");
-    const cancelRun = document.getElementById("cancel-run");
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const snippetId = urlParams.get("snippet");
-    if(snippetId !== null) {
-	fetch(`https://api.scryer.pl/snippet/${snippetId}`)
-	    .then(resp => resp.text())
-	    .then(code => {
-		const snippetCode = code.split("\n").slice(0, -1).join("\n");
-		const snippetQuery = code.split("\n").slice(-1)[0].slice(3);
-		
-		source.value = snippetCode;
-		query.value = snippetQuery;
-	    });
-    }
+	let worker = new Worker("worker.js", {type: "module"});
+	const source = document.getElementById("source");
+	const history = document.getElementById("history");
+	const query = document.getElementById("query");
+	const execute = document.getElementById("execute");
+	const postSnippet = document.getElementById("post-snippet");
+	const snippetUrl = document.getElementById("snippet-url");
+	const cancelRun = document.getElementById("cancel-run");
+	const next1 = document.getElementById("next1");
+	const next5 = document.getElementById("next5");
+	const nextAll = document.getElementById("next-all");
+	const pauseBtn = document.getElementById("pause-btn");
 
-    postSnippet.onclick = () => {
-	const snippet = `${source.value}\n?- ${query.value}`;
-	fetch("https://api.scryer.pl/snippet", {
-	    method: "POST",
-	    body: snippet,
-	})
-	    .then(resp => resp.text())
-	    .then(id => {
-		const link = document.createElement("a");
-		link.href = `https://play.scryer.pl/?snippet=${id}`;
-		link.textContent = link.href;
-		snippetUrl.innerHTML = "";
-		snippetUrl.appendChild(link);
-	    });
-    };
+	const urlParams = new URLSearchParams(window.location.search);
+	const snippetId = urlParams.get("snippet");
+	if(snippetId !== null) {
+		fetch(`https://api.scryer.pl/snippet/${snippetId}`)
+			.then(resp => resp.text())
+			.then(code => {
+				const snippetCode = code.split("\n").slice(0, -1).join("\n");
+				const snippetQuery = code.split("\n").slice(-1)[0].slice(3);
 
-    
-    query.onkeypress = (event) => {
-	if(event.key === "Enter") {
-	    event.preventDefault();
-	    execute.click();
+				source.value = snippetCode;
+				query.value = snippetQuery;
+			});
 	}
-    };
 
-    execute.onclick = () => {
-	if(!ready){
-	    alert("Scryer Prolog WASM not loaded yet");
-	} else if(!executing) {
-	    const queryStr = query.value
-	          .replaceAll("\\", "\\\\")
-            .replaceAll("\"", "\\\"");
-	    const code = source.value + `
-      :- use_module(library(charsio)).
-      :- use_module(library(iso_ext)).
-      :- use_module(library(format)).
-      :- use_module(library(dcgs)).
-      :- initialization(playground_main).
+	postSnippet.onclick = () => {
+		const snippet = `${source.value}\n?- ${query.value}`;
+		fetch("https://api.scryer.pl/snippet", {
+			method: "POST",
+			body: snippet,
+		})
+			.then(resp => resp.text())
+			.then(id => {
+				const link = document.createElement("a");
+				link.href = `https://play.scryer.pl/?snippet=${id}`;
+				link.textContent = link.href;
+				snippetUrl.innerHTML = "";
+				snippetUrl.appendChild(link);
+			});
+	};
 
-      playground_main :-
-          QueryStr = "${queryStr}",
-          read_term_from_chars(QueryStr, Query, [variable_names(Vars)]),
-          bb_put(playground_first_answer, true),
-          bb_put(playground_pending, true),
-          (   setup_call_cleanup(true, Query, NotPending = true),
-              % Query succeeded
-              bb_get(playground_first_answer, FirstAnswer),
-              (   FirstAnswer == true ->
-                  format("   ", []),
-                  bb_put(playground_first_answer, false)
-              ;   true
-              ),
-              phrase(playground_answer(Vars), Answer),
-              format("~s", [Answer]),
-              (   NotPending == true ->
-                  bb_put(playground_pending, false)
-              ;   format("~n;  ", [])
-              ),
-              false
-          ;   % Query maybe failed
-              bb_get(playground_pending, Pending),
-              (   Pending == true ->
-                  % Query failed
-                  bb_get(playground_first_answer, FirstAnswer),
-                  (   FirstAnswer == true ->
-                      format("   ", []),
-                      bb_put(playground_first_answer, false)
-                  ;   true
-                  ),
-                  format("false", [])
-              ;   % Query just terminated
-                  true
-              )
-          ),
-          format(".", []).
+	query.onkeypress = (event) => {
+		if(event.key === "Enter") {
+			event.preventDefault();
+			execute.click();
+		}
+	};
 
-      playground_answer([]) --> "true".
-      playground_answer([Var|Vars]) -->
-          playground_answer_([Var|Vars]).
+	const hideStepControls = () => {
+		next1.style.display = "none";
+		next5.style.display = "none";
+		nextAll.style.display = "none";
+		pauseBtn.style.display = "none";
+	};
 
-      playground_answer_([]) --> "".
-      playground_answer_([VarName=Var|Vars]) -->
-          { write_term_to_chars(Var, [double_quotes(true), quoted(true)], VarChars) },
-          format_("~a = ~s", [VarName, VarChars]),
-          (   { Vars == [] } ->
-              []
-          ;   ", ",
-              playground_answer_(Vars)
-          ).
-      `;
-	    console.log(code);
-	    executingTimer = setTimeout(() => {
-		if(executing) {
-		    document.querySelectorAll(".executing").forEach(e => e.style.display = "initial");
-		}	
-	    }, 500);
-	    console.log(worker);
-	    worker.postMessage({code: code});
-	    executing = true;
-	}
-    };
+	const showStepControls = () => {
+		next1.style.display = "initial";
+		next5.style.display = "initial";
+		nextAll.style.display = "initial";
+	};
 
+	const hidePauseButton = () => {
+		pauseBtn.style.display = "none";
+	};
 
-    const workerHandler = (e) => {
-	if(e.data.type === "ready") {
-	    ready = true;
-	}
-	if(e.data.type === "result") {
-	    executing = false;
-	    clearInterval(executingTimer);
-	    const result = e.data.result;
-	    console.log(result);
-	    document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
-            const element = document.createElement("div");
-	    const historyQuery = document.createElement("div");
-	    historyQuery.textContent = `?- ${query.value}`;
-	    element.appendChild(historyQuery);
-	    const historyOutput = document.createElement("pre");
-	    historyOutput.className = "output";
-      historyOutput.textContent = result;
-	    element.appendChild(historyOutput);
-	    history.appendChild(element);
-	    element.scrollIntoView(false);
-	}
-    };
+	const showPauseButton = () => {
+		pauseBtn.style.display = "initial";
+	};
 
-    worker.onmessage = workerHandler;
+	execute.onclick = () => {
+		if(!ready){
+			alert("Scryer Prolog WASM not loaded yet");
+		} else if(!executing) {
+			// Reset state
+			answerCount = 0;
+			hideStepControls();
 
-    cancelRun.onclick = () => {
-	worker.terminate();
-	document.querySelectorAll(".executing").forEach(e => e.style.display = "none");	
-	ready = false;
-	executing = false;
-	worker = new Worker("worker.js", {type: "module"});
+			// Create new result container
+			currentResultDiv = document.createElement("div");
+			const historyQuery = document.createElement("div");
+			historyQuery.textContent = `?- ${query.value}`;
+			currentResultDiv.appendChild(historyQuery);
+
+			currentOutputPre = document.createElement("pre");
+			currentOutputPre.className = "output";
+			currentResultDiv.appendChild(currentOutputPre);
+
+			history.appendChild(currentResultDiv);
+			currentResultDiv.scrollIntoView(false);
+
+			executingTimer = setTimeout(() => {
+				if(executing) {
+				    document.querySelectorAll(".executing").forEach(e => e.style.display = "initial");
+				}
+			}, 500);
+
+			// Send execute message to worker
+			worker.postMessage({
+				type: "execute",
+				code: source.value,
+				query: query.value
+			});
+			executing = true;
+		}
+	};
+
+	const formatBindings = (bindings) => {
+		if (!bindings || Object.keys(bindings).length === 0) {
+			return "true";
+		}
+		return Object.entries(bindings)
+			.map(([name, value]) => `${name} = ${formatValue(value)}`)
+			.join(", ");
+	};
+
+	const formatValue = (value) => {
+		if (value === null || value === undefined) {
+			return "null";
+		}
+		if (typeof value === "string") {
+			return `"${value}"`;
+		}
+		if (typeof value === "object") {
+			// Handle variables
+			if (value.var !== undefined) {
+				return value.var;
+			}
+			if (value.indicator === "atom") {
+				return value.value;
+			}
+			if (value.indicator === "compound") {
+				const args = value.args.map(formatValue).join(", ");
+				return `${value.name}(${args})`;
+			}
+			if (Array.isArray(value)) {
+				return `[${value.map(formatValue).join(", ")}]`;
+			}
+			// Default object formatting
+			return JSON.stringify(value);
+		}
+		return String(value);
+	};
+
+	const appendAnswer = (bindings) => {
+		const formatted = formatBindings(bindings);
+		if (answerCount === 0) {
+			currentOutputPre.textContent = "   " + formatted;
+		} else {
+			currentOutputPre.textContent += "\n;  " + formatted;
+		}
+		answerCount++;
+		currentResultDiv.scrollIntoView(false);
+	};
+
+	next1.onclick = () => {
+		hidePauseButton();
+		worker.postMessage({type: "next", stepSize: 1});
+	};
+
+	next5.onclick = () => {
+		hidePauseButton();
+		worker.postMessage({type: "next", stepSize: 5});
+	};
+
+	nextAll.onclick = () => {
+		hideStepControls();
+		showPauseButton();
+		worker.postMessage({type: "next", stepSize: "all"});
+	};
+
+	pauseBtn.onclick = () => {
+		worker.postMessage({type: "pause"});
+	};
+
+	const workerHandler = (e) => {
+		if(e.data.type === "ready") {
+			ready = true;
+		}
+
+		if(e.data.type === "query_started") {
+			executing = true;
+			clearInterval(executingTimer);
+			document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
+			showStepControls();
+			// Automatically request first answer
+			worker.postMessage({type: "next", stepSize: 1});
+		}
+
+		if(e.data.type === "answer") {
+			appendAnswer(e.data.bindings);
+		}
+
+		if(e.data.type === "waiting") {
+			// More answers available, controls already visible
+		}
+
+		if(e.data.type === "complete") {
+			executing = false;
+			clearInterval(executingTimer);
+			document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
+			hideStepControls();
+			hidePauseButton();
+
+			if (answerCount === 0) {
+				currentOutputPre.textContent = "   false";
+			}
+			currentOutputPre.textContent += ".";
+		}
+
+		if(e.data.type === "paused") {
+			hidePauseButton();
+			showStepControls();
+		}
+
+		if(e.data.type === "cancelled") {
+			executing = false;
+			clearInterval(executingTimer);
+			document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
+			hideStepControls();
+			hidePauseButton();
+			if (currentOutputPre) {
+				currentOutputPre.textContent += "\n% Execution cancelled";
+			}
+		}
+
+		if(e.data.type === "error") {
+			executing = false;
+			clearInterval(executingTimer);
+			document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
+			hideStepControls();
+			hidePauseButton();
+			if (currentOutputPre) {
+				currentOutputPre.textContent = `Error: ${e.data.error}`;
+			}
+		}
+	};
+
 	worker.onmessage = workerHandler;
-    };
+
+	cancelRun.onclick = () => {
+		worker.postMessage({type: "cancel"});
+	};
+
+	// Initialize controls as hidden
+	hideStepControls();
 };

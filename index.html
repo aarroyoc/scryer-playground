@@ -5,7 +5,6 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="main.css">
     <link rel="modulepreload" href="worker.js">
-    <link rel="modulepreload" href="scryer_prolog.js">
     <script type="module" src="main.js"></script>
   </head>
   <body>
@@ -18,13 +17,22 @@
 	<div id="form">
   	<label>?- </label><input type="text" id="query">
 	<button id="execute">Execute!</button>
+	<button id="next1" style="display:none;">Next 1</button>
+	<button id="next5" style="display:none;">Next 5</button>
+	<button id="next-all" style="display:none;">All</button>
+	<button id="pause-btn" style="display:none;">Pause</button>
 	<span class="executing">Executing...</span>
-	<a class="executing" id="cancel-run" href="javascript:void(0);">Reset execution</a>
+	<a class="executing" id="cancel-run" href="javascript:void(0);">Cancel</a>
 	</div>
 	<div id="history"></div>
       </div>
     </main>
-    <footer>Running using <a href="https://www.scryer.pl">Scryer Prolog</a> - <a href="https://github.com/aarroyoc/scryer-playground">GitHub (code and issues)</a></footer>
+    <footer>
+      Running using <a href="https://www.scryer.pl">Scryer Prolog</a>
+      via <a href="https://github.com/guregu/scryer-js">scryer-js v0.7.0</a>
+      (Scryer Prolog commit <a href="https://github.com/mthom/scryer-prolog/commit/8558bd22142220c4de4992dc0f4b3f46502b42d8">8558bd2</a>, April 2025, post-v0.10.0)
+      - <a href="https://github.com/aarroyoc/scryer-playground">GitHub (code and issues)</a>
+    </footer>
   </body>
 </html>
 

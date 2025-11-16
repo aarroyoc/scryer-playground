@@ -10,19 +10,13 @@
     "type": "git",
     "url": "https://github.com/mthom/scryer-prolog"
   },
-  "files": [
-    "scryer_prolog_bg.wasm",
-    "scryer_prolog.js",
-    "scryer_prolog.d.ts"
-  ],
-  "module": "scryer_prolog.js",
-  "types": "scryer_prolog.d.ts",
-  "sideEffects": [
-    "./snippets/*"
-  ],
+  "type": "module",
   "keywords": [
     "prolog",
     "prolog-interpreter",
     "prolog-system"
-  ]
+  ],
+  "dependencies": {
+    "scryer": "^0.7.0"
+  }
 }
