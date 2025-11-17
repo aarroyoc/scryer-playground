@@ -214,11 +214,15 @@ window.onload = () => {
 			if (answerCount === 0) {
 				// No solutions found
 				currentOutputPre.textContent = "   false.";
-			} else if (!lastAnswerWasFalse) {
-				// One or more solutions, last wasn't false - add period
+			} else if (lastAnswerWasFalse) {
+				// Last answer was false, we already added the period
+			} else if (answerCount === 1) {
+				// Single solution (deterministic) - just add period
 				currentOutputPre.textContent += ".";
+			} else {
+				// Multiple solutions without explicit false - add "; false."
+				currentOutputPre.textContent += "\n;  false.";
 			}
-			// If last answer was false, we already added the period
 		}
 
 		if(e.data.type === "paused") {
