@@ -6,6 +6,33 @@ h1 {
   border-bottom-color: #00007F;
   border-bottom-style: solid;
   border-bottom-width: 10px;
+  margin-bottom: 10px;
+}
+
+#demos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+#demo-buttons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.demo-button {
+  padding: 5px 10px;
+  background-color: #00007F;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.demo-button:hover {
+  background-color: #0000A0;
 }
 
 textarea, input {

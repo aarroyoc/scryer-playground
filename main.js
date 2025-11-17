@@ -1,4 +1,5 @@
 import { formatValue, formatBindings } from './format.js';
+import { demos } from './demos.js';
 
 let ready = false;
 let executing = false;
@@ -20,6 +21,19 @@ window.onload = () => {
 	const next5 = document.getElementById("next5");
 	const nextAll = document.getElementById("next-all");
 	const pauseBtn = document.getElementById("pause-btn");
+	const demoButtons = document.getElementById("demo-buttons");
+
+	// Create demo buttons
+	demos.forEach(demo => {
+		const button = document.createElement("button");
+		button.textContent = demo.name;
+		button.className = "demo-button";
+		button.onclick = () => {
+			source.value = demo.code;
+			query.value = demo.query;
+		};
+		demoButtons.appendChild(button);
+	});
 
 	const urlParams = new URLSearchParams(window.location.search);
 	const snippetId = urlParams.get("snippet");
