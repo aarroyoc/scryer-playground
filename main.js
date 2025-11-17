@@ -202,13 +202,11 @@ window.onload = () => {
 			hidePauseButton();
 
 			if (answerCount === 0) {
+				// No solutions found
 				currentOutputPre.textContent = "   false.";
-			} else if (answerCount === 1) {
-				// Deterministic: single answer, just add period
-				currentOutputPre.textContent += ".";
 			} else {
-				// Non-deterministic: multiple answers, show "; false."
-				currentOutputPre.textContent += "\n;  false.";
+				// One or more solutions - just add period after last answer
+				currentOutputPre.textContent += ".";
 			}
 		}
 
