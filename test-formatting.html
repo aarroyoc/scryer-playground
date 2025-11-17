@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Scryer Playground - Formatting Tests</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .pass { background-color: #d4edda; }
+        .fail { background-color: #f8d7da; }
+        h2 { margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <h1>Scryer Playground Formatting Tests</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        // Import formatValue function (we'll need to export it from main.js)
+        // For now, duplicate it here
+        const formatValue = (value) => {
+            if (value === null || value === undefined) {
+                return "null";
+            }
+            if (typeof value === "string") {
+                return `"${value}"`;
+            }
+            if (typeof value === "object") {
+                // Handle variables
+                if (value.var !== undefined) {
+                    return value.var;
+                }
+                // Handle atoms (both with and without indicator)
+                if (value.indicator === "atom" || (value.value !== undefined && !Array.isArray(value) && typeof value.value === "string")) {
+                    return value.value;
+                }
+                if (value.indicator === "compound") {
+                    const args = value.args.map(formatValue).join(", ");
+                    return `${value.name}(${args})`;
+                }
+                if (Array.isArray(value)) {
+                    return `[${value.map(formatValue).join(", ")}]`;
+                }
+                // Default object formatting
+                return JSON.stringify(value);
+            }
+            return String(value);
+        };
+
+        const formatBindings = (bindings) => {
+            if (!bindings || Object.keys(bindings).length === 0) {
+                return "true";
+            }
+            return Object.entries(bindings)
+                .map(([name, value]) => `${name} = ${formatValue(value)}`)
+                .join(", ");
+        };
+
+        const results = document.getElementById('results');
+
+        function test(name, input, expected) {
+            const actual = formatValue(input);
+            const pass = actual === expected;
+            const div = document.createElement('div');
+            div.className = `test ${pass ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${pass ? '✓' : '✗'} ${name}</strong><br>
+                Input: <code>${JSON.stringify(input)}</code><br>
+                Expected: <code>${expected}</code><br>
+                Actual: <code>${actual}</code>
+            `;
+            results.appendChild(div);
+            return pass;
+        }
+
+        function testBindings(name, input, expected) {
+            const actual = formatBindings(input);
+            const pass = actual === expected;
+            const div = document.createElement('div');
+            div.className = `test ${pass ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${pass ? '✓' : '✗'} ${name}</strong><br>
+                Input: <code>${JSON.stringify(input)}</code><br>
+                Expected: <code>${expected}</code><br>
+                Actual: <code>${actual}</code>
+            `;
+            results.appendChild(div);
+            return pass;
+        }
+
+        // Run tests
+        const h2 = document.createElement('h2');
+        h2.textContent = 'Unit Tests - formatValue';
+        results.appendChild(h2);
+
+        let passed = 0;
+        let failed = 0;
+
+        // Test atoms with indicator
+        test("Atom with indicator",
+            {indicator: "atom", value: "hello"},
+            "hello") ? passed++ : failed++;
+
+        // Test atoms without indicator (bare value objects)
+        test("Atom without indicator",
+            {value: "a"},
+            "a") ? passed++ : failed++;
+
+        // Test variables
+        test("Variable",
+            {var: "_A"},
+            "_A") ? passed++ : failed++;
+
+        // Test compounds
+        test("Compound term",
+            {indicator: "compound", name: "foo", args: [{value: "a"}, {value: "b"}]},
+            "foo(a, b)") ? passed++ : failed++;
+
+        // Test nested compounds
+        test("Nested compound",
+            {indicator: "compound", name: "foo", args: [
+                {indicator: "compound", name: "bar", args: [{value: "x"}]}
+            ]},
+            "foo(bar(x))") ? passed++ : failed++;
+
+        // Test empty list
+        test("Empty list",
+            [],
+            "[]") ? passed++ : failed++;
+
+        // Test list with atoms
+        test("List of atoms",
+            [{value: "a"}, {value: "b"}, {value: "c"}],
+            "[a, b, c]") ? passed++ : failed++;
+
+        // Test list with variables
+        test("List with variables",
+            [{var: "_A"}, {var: "_B"}],
+            "[_A, _B]") ? passed++ : failed++;
+
+        // Test numbers
+        test("Number",
+            42,
+            "42") ? passed++ : failed++;
+
+        // Test strings
+        test("String",
+            "hello",
+            '"hello"') ? passed++ : failed++;
+
+        // Test null
+        test("Null",
+            null,
+            "null") ? passed++ : failed++;
+
+        // Test undefined
+        test("Undefined",
+            undefined,
+            "null") ? passed++ : failed++;
+
+        const h3 = document.createElement('h2');
+        h3.textContent = 'Unit Tests - formatBindings';
+        results.appendChild(h3);
+
+        // Test empty bindings
+        testBindings("Empty bindings",
+            {},
+            "true") ? passed++ : failed++;
+
+        // Test single binding
+        testBindings("Single binding",
+            {X: 42},
+            "X = 42") ? passed++ : failed++;
+
+        // Test multiple bindings
+        testBindings("Multiple bindings",
+            {X: {value: "a"}, Y: {value: "b"}},
+            "X = a, Y = b") ? passed++ : failed++;
+
+        // Summary
+        const summary = document.createElement('h2');
+        summary.innerHTML = `Summary: ${passed} passed, ${failed} failed`;
+        summary.style.color = failed === 0 ? 'green' : 'red';
+        results.appendChild(summary);
+
+        // Integration tests with actual scryer-js
+        const h4 = document.createElement('h2');
+        h4.textContent = 'Integration Tests - Actual scryer-js Output';
+        results.appendChild(h4);
+
+        const note = document.createElement('p');
+        note.innerHTML = '<strong>Note:</strong> Integration tests require scryer-js to be loaded. Run these manually by executing queries in the playground.';
+        results.appendChild(note);
+
+        const integrationTests = document.createElement('div');
+        integrationTests.innerHTML = `
+            <h3>Manual Integration Tests</h3>
+            <ol>
+                <li><strong>Atoms in lists:</strong> Query <code>as(As)</code> should show <code>As = [a, a, a]</code> not <code>As = [{"value":"a"}, ...]</code></li>
+                <li><strong>Variables:</strong> Query <code>X = _</code> should show <code>X = _A</code> format</li>
+                <li><strong>Compounds:</strong> Query <code>X = foo(a, b)</code> should show <code>X = foo(a, b)</code></li>
+                <li><strong>Numbers:</strong> Query <code>X is 1+2</code> should show <code>X = 3</code></li>
+                <li><strong>Empty list:</strong> Query <code>X = []</code> should show <code>X = []</code></li>
+                <li><strong>Length test:</strong> Query <code>length(Ls, N)</code> should show properly formatted lists</li>
+            </ol>
+        `;
+        results.appendChild(integrationTests);
+    </script>
+</body>
+</html>
