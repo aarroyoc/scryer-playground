@@ -202,9 +202,10 @@ window.onload = () => {
 			hidePauseButton();
 
 			if (answerCount === 0) {
-				currentOutputPre.textContent = "   false";
+				currentOutputPre.textContent = "   false.";
+			} else {
+				currentOutputPre.textContent += "\n;  false.";
 			}
-			currentOutputPre.textContent += ".";
 		}
 
 		if(e.data.type === "paused") {
