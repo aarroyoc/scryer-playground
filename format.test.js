@@ -131,6 +131,14 @@ describe('formatBindings', () => {
 		expect(formatBindings({})).toBe("true");
 	});
 
+	it('handles undefined bindings', () => {
+		expect(formatBindings(undefined)).toBe("true");
+	});
+
+	it('handles null bindings', () => {
+		expect(formatBindings(null)).toBe("true");
+	});
+
 	it('formats single binding', () => {
 		expect(formatBindings({X: 42})).toBe("X = 42");
 	});

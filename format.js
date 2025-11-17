@@ -20,7 +20,7 @@ export function formatValue(value) {
 			return value.value;
 		}
 		// Handle compound terms (both indicator-based and functor-based)
-		if (value.indicator === "compound" || value.functor) {
+		if ((value.indicator === "compound" || value.functor) && value.args) {
 			const functorName = value.name || value.functor;
 			const args = value.args.map(formatValue).join(", ");
 			return `${functorName}(${args})`;
@@ -49,7 +49,11 @@ export function formatValue(value) {
  * @returns {string} Formatted bindings string
  */
 export function formatBindings(bindings) {
-	if (!bindings || Object.keys(bindings).length === 0) {
+	// Handle null, undefined, or empty bindings
+	if (!bindings) {
+		return "true";
+	}
+	if (typeof bindings === 'object' && Object.keys(bindings).length === 0) {
 		return "true";
 	}
 	return Object.entries(bindings)
