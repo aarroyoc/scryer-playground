@@ -39,6 +39,15 @@
                     return `${value.name}(${args})`;
                 }
                 if (Array.isArray(value)) {
+                    // Check if this is a string (list of single-character atoms)
+                    const isString = value.length > 0 && value.every(item =>
+                        (item.value !== undefined && typeof item.value === "string" && item.value.length === 1) ||
+                        (item.indicator === "atom" && typeof item.value === "string" && item.value.length === 1)
+                    );
+                    if (isString) {
+                        const str = value.map(item => item.value).join('');
+                        return `"${str}"`;
+                    }
                     return `[${value.map(formatValue).join(", ")}]`;
                 }
                 // Default object formatting
@@ -128,10 +137,15 @@
             [],
             "[]") ? passed++ : failed++;
 
-        // Test list with atoms
-        test("List of atoms",
-            [{value: "a"}, {value: "b"}, {value: "c"}],
-            "[a, b, c]") ? passed++ : failed++;
+        // Test list with single-char atoms (should be a string)
+        test("String (list of single-char atoms)",
+            [{value: "a"}, {value: "a"}, {value: "a"}],
+            '"aaa"') ? passed++ : failed++;
+
+        // Test list with multi-char atoms (should stay as list)
+        test("List of multi-char atoms",
+            [{value: "foo"}, {value: "bar"}],
+            "[foo, bar]") ? passed++ : failed++;
 
         // Test list with variables
         test("List with variables",

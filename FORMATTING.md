@@ -50,16 +50,32 @@ _A
 foo(a, b)
 ```
 
-### Lists
+### Strings (Lists of Single-Character Atoms)
+
+In Scryer Prolog, lists of single-character atoms are displayed as strings.
 
 **Input from scryer-js:**
 ```javascript
-[{value: "a"}, {value: "b"}, {value: "c"}]
+[{value: "a"}, {value: "a"}, {value: "a"}]
 ```
 
 **Output:**
 ```
-[a, b, c]
+"aaa"
+```
+
+### Lists (Non-String)
+
+Lists with multi-character atoms or mixed content stay as lists.
+
+**Input from scryer-js:**
+```javascript
+[{value: "foo"}, {value: "bar"}]
+```
+
+**Output:**
+```
+[foo, bar]
 ```
 
 ### Empty List

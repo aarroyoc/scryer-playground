@@ -155,6 +155,15 @@ window.onload = () => {
 				return `${value.name}(${args})`;
 			}
 			if (Array.isArray(value)) {
+				// Check if this is a string (list of single-character atoms)
+				const isString = value.length > 0 && value.every(item =>
+					(item.value !== undefined && typeof item.value === "string" && item.value.length === 1) ||
+					(item.indicator === "atom" && typeof item.value === "string" && item.value.length === 1)
+				);
+				if (isString) {
+					const str = value.map(item => item.value).join('');
+					return `"${str}"`;
+				}
 				return `[${value.map(formatValue).join(", ")}]`;
 			}
 			// Default object formatting
