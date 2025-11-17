@@ -11,6 +11,10 @@
     "url": "https://github.com/mthom/scryer-prolog"
   },
   "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "keywords": [
     "prolog",
     "prolog-interpreter",
@@ -18,5 +22,8 @@
   ],
   "dependencies": {
     "scryer": "^0.7.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.9"
   }
 }

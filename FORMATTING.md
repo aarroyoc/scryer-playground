@@ -116,11 +116,16 @@ Lists with multi-character atoms or mixed content stay as lists.
 
 ## Testing
 
-Run the formatting tests by opening `test-formatting.html` in a browser:
+Run the unit tests:
 
 ```bash
-# With development server running:
-open http://localhost:8080/test-formatting.html
+npm test
+```
+
+Or run in watch mode during development:
+
+```bash
+npm run test:watch
 ```
 
 ### Regression Testing
