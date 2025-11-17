@@ -100,6 +100,30 @@ describe('formatValue', () => {
 			expect(formatValue({foo: "bar"})).toBe('{"foo":"bar"}');
 		});
 	});
+
+	describe('functor-based compounds (scryer-js format)', () => {
+		it('formats simple functor with single arg', () => {
+			expect(formatValue({
+				functor: "right_to_left",
+				args: [{value: "buzz"}]
+			})).toBe("right_to_left(buzz)");
+		});
+
+		it('formats functor with multiple args', () => {
+			expect(formatValue({
+				functor: "left_to_right",
+				args: [{value: "buzz"}, {value: "woody"}]
+			})).toBe("left_to_right(buzz, woody)");
+		});
+
+		it('formats list of functors', () => {
+			const input = [
+				{functor: "left_to_right", args: [{value: "buzz"}, {value: "woody"}]},
+				{functor: "right_to_left", args: [{value: "buzz"}]}
+			];
+			expect(formatValue(input)).toBe("[left_to_right(buzz, woody), right_to_left(buzz)]");
+		});
+	});
 });
 
 describe('formatBindings', () => {
@@ -123,5 +147,17 @@ describe('formatBindings', () => {
 			Ls: [{value: "a"}, {value: "a"}],
 			N: 2
 		})).toBe('Ls = "aa", N = 2');
+	});
+
+	it('formats Zurg puzzle solution correctly', () => {
+		expect(formatBindings({
+			Ms: [
+				{functor: "left_to_right", args: [{value: "buzz"}, {value: "woody"}]},
+				{functor: "right_to_left", args: [{value: "buzz"}]},
+				{functor: "left_to_right", args: [{value: "hamm"}, {value: "rex"}]},
+				{functor: "right_to_left", args: [{value: "woody"}]},
+				{functor: "left_to_right", args: [{value: "buzz"}, {value: "woody"}]}
+			]
+		})).toBe('Ms = [left_to_right(buzz, woody), right_to_left(buzz), left_to_right(hamm, rex), right_to_left(woody), left_to_right(buzz, woody)]');
 	});
 });

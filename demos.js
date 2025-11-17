@@ -34,6 +34,6 @@ moves_(state(T0,Ls0,Rs0)) -->
           T1 #= T0 + Time, T1 #=< 60 },
         [right_to_left(Toy)],
         moves(state(T1,[Toy|Ls0],Rs1)).`,
-		query: "moves(Ms)"
+		query: "moves(Ms)."
 	}
 ];

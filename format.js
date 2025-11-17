@@ -16,12 +16,14 @@ export function formatValue(value) {
 			return value.var;
 		}
 		// Handle atoms (both with and without indicator)
-		if (value.indicator === "atom" || (value.value !== undefined && !Array.isArray(value) && typeof value.value === "string")) {
+		if (value.indicator === "atom" || (value.value !== undefined && !Array.isArray(value) && typeof value.value === "string" && !value.args)) {
 			return value.value;
 		}
-		if (value.indicator === "compound") {
+		// Handle compound terms (both indicator-based and functor-based)
+		if (value.indicator === "compound" || value.functor) {
+			const functorName = value.name || value.functor;
 			const args = value.args.map(formatValue).join(", ");
-			return `${value.name}(${args})`;
+			return `${functorName}(${args})`;
 		}
 		if (Array.isArray(value)) {
 			// Check if this is a string (list of single-character atoms)
