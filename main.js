@@ -80,10 +80,18 @@ window.onload = () => {
 	execute.onclick = () => {
 		if(!ready){
 			alert("Scryer Prolog WASM not loaded yet");
-		} else if(!executing) {
+		} else {
+			// Cancel any existing query first
+			if(executing) {
+				worker.postMessage({type: "cancel"});
+			}
+
 			// Reset state
 			answerCount = 0;
 			hideStepControls();
+			executing = false;
+			clearInterval(executingTimer);
+			document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
 
 			// Create new result container
 			currentResultDiv = document.createElement("div");
