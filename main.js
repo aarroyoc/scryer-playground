@@ -203,7 +203,11 @@ window.onload = () => {
 
 			if (answerCount === 0) {
 				currentOutputPre.textContent = "   false.";
+			} else if (answerCount === 1) {
+				// Deterministic: single answer, just add period
+				currentOutputPre.textContent += ".";
 			} else {
+				// Non-deterministic: multiple answers, show "; false."
 				currentOutputPre.textContent += "\n;  false.";
 			}
 		}
