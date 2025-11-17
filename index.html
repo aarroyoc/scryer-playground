@@ -18,18 +18,11 @@
 :- use_module(library(format)).
 :- use_module(library(dcgs)).
 
-% Natural numbers generator (infinite)
-nat(0).
-nat(N) :- nat(N1), N is N1 + 1.
+as --> [].
+as --> [a], as.
 
-% Simple list utilities
-replicate(0, _, []).
-replicate(N, X, [X|Xs]) :- N > 0, N1 is N - 1, replicate(N1, X, Xs).
-
-% Example queries to try:
-% ?- length(Ls, N).        % Generate lists of increasing length
-% ?- nat(N).               % Generate natural numbers
-% ?- between(1, inf, X).   % Built-in infinite generator</textarea>
+as(As) :-
+    phrase(as, As).</textarea>
       <div id="execution">
 	<div id="form">
   	<label>?- </label><input type="text" id="query">

@@ -146,7 +146,8 @@ window.onload = () => {
 			if (value.var !== undefined) {
 				return value.var;
 			}
-			if (value.indicator === "atom") {
+			// Handle atoms (both with and without indicator)
+			if (value.indicator === "atom" || (value.value !== undefined && !Array.isArray(value) && typeof value.value === "string")) {
 				return value.value;
 			}
 			if (value.indicator === "compound") {
