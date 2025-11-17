@@ -93,6 +93,9 @@ window.onload = () => {
 			clearInterval(executingTimer);
 			document.querySelectorAll(".executing").forEach(e => e.style.display = "none");
 
+			// Clear previous queries
+			history.innerHTML = "";
+
 			// Create new result container
 			currentResultDiv = document.createElement("div");
 			const historyQuery = document.createElement("div");
