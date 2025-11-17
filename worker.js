@@ -20,15 +20,6 @@ self.onmessage = async (e) => {
             // Reload source code each time
             pl = new Prolog();
 
-            // Load standard libraries (matching original playground)
-            pl.consultText(`
-:- use_module(library(lists)).
-:- use_module(library(charsio)).
-:- use_module(library(iso_ext)).
-:- use_module(library(format)).
-:- use_module(library(dcgs)).
-            `);
-
             // Consult the source code if provided
             if (code && code.trim()) {
                 pl.consultText(code);
