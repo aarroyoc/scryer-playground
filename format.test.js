@@ -139,6 +139,10 @@ describe('formatBindings', () => {
 		expect(formatBindings(null)).toBe("true");
 	});
 
+	it('handles false bindings (query failure)', () => {
+		expect(formatBindings(false)).toBe("false");
+	});
+
 	it('formats single binding', () => {
 		expect(formatBindings({X: 42})).toBe("X = 42");
 	});

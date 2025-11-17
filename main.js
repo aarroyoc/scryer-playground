@@ -7,6 +7,7 @@ let executingTimer = null;
 let currentResultDiv = null;
 let currentOutputPre = null;
 let answerCount = 0;
+let lastAnswerWasFalse = false;
 
 window.onload = () => {
 	let worker = new Worker("worker.js", {type: "module"});
@@ -104,6 +105,7 @@ window.onload = () => {
 
 			// Reset state
 			answerCount = 0;
+			lastAnswerWasFalse = false;
 			hideStepControls();
 			executing = false;
 			clearInterval(executingTimer);
@@ -143,11 +145,19 @@ window.onload = () => {
 
 	const appendAnswer = (bindings) => {
 		const formatted = formatBindings(bindings);
+		lastAnswerWasFalse = (bindings === false);
+
 		if (answerCount === 0) {
 			currentOutputPre.textContent = "   " + formatted;
 		} else {
 			currentOutputPre.textContent += "\n;  " + formatted;
 		}
+
+		// If this answer is false, add period immediately
+		if (lastAnswerWasFalse) {
+			currentOutputPre.textContent += ".";
+		}
+
 		answerCount++;
 		currentResultDiv.scrollIntoView(false);
 	};
@@ -204,10 +214,11 @@ window.onload = () => {
 			if (answerCount === 0) {
 				// No solutions found
 				currentOutputPre.textContent = "   false.";
-			} else {
-				// One or more solutions - just add period after last answer
+			} else if (!lastAnswerWasFalse) {
+				// One or more solutions, last wasn't false - add period
 				currentOutputPre.textContent += ".";
 			}
+			// If last answer was false, we already added the period
 		}
 
 		if(e.data.type === "paused") {

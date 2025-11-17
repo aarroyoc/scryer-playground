@@ -49,7 +49,11 @@ export function formatValue(value) {
  * @returns {string} Formatted bindings string
  */
 export function formatBindings(bindings) {
-	// Handle null, undefined, or empty bindings
+	// Handle explicit false (query failure)
+	if (bindings === false) {
+		return "false";
+	}
+	// Handle null, undefined, or empty bindings (success with no vars)
 	if (!bindings) {
 		return "true";
 	}
