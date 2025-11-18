@@ -4,6 +4,7 @@ let pl = null;
 let currentQuery = null;
 let isPaused = false;
 let isStreaming = false;
+let bufferedAnswer = null; // Store peeked answer for next request
 
 self.onmessage = async (e) => {
     const { type, code, query, stepSize } = e.data;
@@ -28,6 +29,7 @@ self.onmessage = async (e) => {
             // Execute the query
             currentQuery = pl.query(query);
             isPaused = false;
+            bufferedAnswer = null; // Clear any buffered answer
 
             self.postMessage({type: "query_started"});
 
@@ -79,7 +81,15 @@ self.onmessage = async (e) => {
             } else {
                 // Step mode (1 or 5)
                 for (let i = 0; i < steps; i++) {
-                    const result = currentQuery.next();
+                    let result;
+
+                    // Check if we have a buffered answer first
+                    if (bufferedAnswer) {
+                        result = bufferedAnswer;
+                        bufferedAnswer = null;
+                    } else {
+                        result = currentQuery.next();
+                    }
 
                     if (result.done) {
                         self.postMessage({
@@ -98,8 +108,8 @@ self.onmessage = async (e) => {
                     count++;
                 }
 
-                // Peek ahead to check if query is actually done
-                if (currentQuery) {
+                // Peek ahead to check if query is actually done (but don't send the answer)
+                if (currentQuery && !bufferedAnswer) {
                     const peek = currentQuery.next();
                     if (peek.done) {
                         self.postMessage({
@@ -109,20 +119,13 @@ self.onmessage = async (e) => {
                         });
                         currentQuery = null;
                     } else {
-                        // Got another answer, send it and wait for more
+                        // Buffer the peeked answer for next request
+                        bufferedAnswer = peek;
                         self.postMessage({
-                            type: "answer",
-                            bindings: peek.value.bindings
+                            type: "waiting",
+                            hasMore: true,
+                            count: count
                         });
-                        count++;
-
-                        if (!currentQuery.done) {
-                            self.postMessage({
-                                type: "waiting",
-                                hasMore: true,
-                                count: count
-                            });
-                        }
                     }
                 }
             }
@@ -155,6 +158,7 @@ self.onmessage = async (e) => {
         }
         isPaused = false;
         isStreaming = false;
+        bufferedAnswer = null;
         self.postMessage({type: "cancelled"});
         return;
     }
