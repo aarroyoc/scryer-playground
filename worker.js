@@ -1,4 +1,37 @@
-import { init, Prolog } from "./scryer-patched.js";
+// Fetch scryer-js from GitHub CDN with integrity verification
+const SCRYER_CDN_URL = 'https://raw.githubusercontent.com/jjtolton/scryer-js/dist-cdn/dist/scryer.js';
+const SCRYER_SRI_HASH = 'sha384-6BGoKKH2hc6CZw37l9X+9aYez77NLafXFNPZyIjpNqeuf4gh2lTF+wGw1SJXl0sq';
+
+async function loadScryerModule() {
+	// Fetch the distribution
+	const response = await fetch(SCRYER_CDN_URL);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch scryer-js: ${response.status}`);
+	}
+
+	// Verify integrity using SHA-384
+	const text = await response.text();
+	const encoder = new TextEncoder();
+	const data = encoder.encode(text);
+	const hashBuffer = await crypto.subtle.digest('SHA-384', data);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	const hashBase64 = btoa(String.fromCharCode(...hashArray));
+	const computedHash = `sha384-${hashBase64}`;
+
+	if (computedHash !== SCRYER_SRI_HASH) {
+		throw new Error(`Integrity check failed! Expected ${SCRYER_SRI_HASH}, got ${computedHash}`);
+	}
+
+	// Create blob URL and import as module
+	const blob = new Blob([text], { type: 'text/javascript' });
+	const blobUrl = URL.createObjectURL(blob);
+
+	return import(blobUrl);
+}
+
+// Load the module from CDN
+const scryerModule = await loadScryerModule();
+const { init, Prolog } = scryerModule;
 
 let pl = null;
 let currentQuery = null;
