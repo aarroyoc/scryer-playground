@@ -9,6 +9,31 @@ let currentOutputPre = null;
 let answerCount = 0;
 let lastAnswerWasFalse = false;
 
+// Helper functions for URL hash encoding/decoding
+function encodeSnippet(code, query) {
+	const params = new URLSearchParams();
+	params.set('code', btoa(encodeURIComponent(code)));
+	params.set('query', btoa(encodeURIComponent(query)));
+	return params.toString();
+}
+
+function decodeSnippet(hash) {
+	const params = new URLSearchParams(hash);
+	const code = params.get('code');
+	const query = params.get('query');
+	if (code && query) {
+		return {
+			code: decodeURIComponent(atob(code)),
+			query: decodeURIComponent(atob(query))
+		};
+	}
+	return null;
+}
+
+function updateHash(code, query) {
+	window.location.hash = encodeSnippet(code, query);
+}
+
 window.onload = () => {
 	let worker = new Worker("worker.js", {type: "module"});
 	const source = document.getElementById("source");
@@ -32,38 +57,59 @@ window.onload = () => {
 		button.onclick = () => {
 			source.value = demo.code;
 			query.value = demo.query;
+			// Update URL hash to make demo shareable
+			updateHash(demo.code, demo.query);
 		};
 		demoButtons.appendChild(button);
 	});
 
-	const urlParams = new URLSearchParams(window.location.search);
-	const snippetId = urlParams.get("snippet");
-	if(snippetId !== null) {
-		fetch(`https://api.scryer.pl/snippet/${snippetId}`)
-			.then(resp => resp.text())
-			.then(code => {
-				const snippetCode = code.split("\n").slice(0, -1).join("\n");
-				const snippetQuery = code.split("\n").slice(-1)[0].slice(3);
+	// Load snippet from URL hash (preferred) or legacy API
+	const hash = window.location.hash.slice(1); // Remove leading #
+	const hashSnippet = decodeSnippet(hash);
 
-				source.value = snippetCode;
-				query.value = snippetQuery;
-			});
+	if (hashSnippet) {
+		// Load from hash
+		source.value = hashSnippet.code;
+		query.value = hashSnippet.query;
+	} else {
+		// Fall back to legacy API snippet loading
+		const urlParams = new URLSearchParams(window.location.search);
+		const snippetId = urlParams.get("snippet");
+		if(snippetId !== null) {
+			fetch(`https://api.scryer.pl/snippet/${snippetId}`)
+				.then(resp => resp.text())
+				.then(code => {
+					const snippetCode = code.split("\n").slice(0, -1).join("\n");
+					const snippetQuery = code.split("\n").slice(-1)[0].slice(3);
+
+					source.value = snippetCode;
+					query.value = snippetQuery;
+				})
+				.catch(err => console.error("Failed to load snippet:", err));
+		}
 	}
 
 	postSnippet.onclick = () => {
-		const snippet = `${source.value}\n?- ${query.value}`;
-		fetch("https://api.scryer.pl/snippet", {
-			method: "POST",
-			body: snippet,
-		})
-			.then(resp => resp.text())
-			.then(id => {
-				const link = document.createElement("a");
-				link.href = `https://play.scryer.pl/?snippet=${id}`;
-				link.textContent = link.href;
-				snippetUrl.innerHTML = "";
-				snippetUrl.appendChild(link);
-			});
+		// Update hash with current code and query
+		updateHash(source.value, query.value);
+
+		// Create shareable link
+		const link = document.createElement("a");
+		link.href = window.location.href;
+		link.textContent = link.href;
+		snippetUrl.innerHTML = "";
+		snippetUrl.appendChild(link);
+
+		// Copy to clipboard
+		navigator.clipboard.writeText(link.href)
+			.then(() => {
+				const copied = document.createElement("span");
+				copied.textContent = " (copied!)";
+				copied.style.color = "#00007F";
+				snippetUrl.appendChild(copied);
+				setTimeout(() => copied.remove(), 2000);
+			})
+			.catch(err => console.error("Failed to copy:", err));
 	};
 
 	query.onkeypress = (event) => {
