@@ -1,4 +1,4 @@
-import { init, Prolog } from "https://esm.sh/scryer@0.7.0";
+import { init, Prolog } from "./scryer-patched.js";
 
 let pl = null;
 let currentQuery = null;
