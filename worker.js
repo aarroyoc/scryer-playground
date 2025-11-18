@@ -98,13 +98,32 @@ self.onmessage = async (e) => {
                     count++;
                 }
 
-                // If we finished the steps but query isn't done, send waiting status
-                if (currentQuery && !currentQuery.done) {
-                    self.postMessage({
-                        type: "waiting",
-                        hasMore: true,
-                        count: count
-                    });
+                // Peek ahead to check if query is actually done
+                if (currentQuery) {
+                    const peek = currentQuery.next();
+                    if (peek.done) {
+                        self.postMessage({
+                            type: "complete",
+                            hasMore: false,
+                            count: count
+                        });
+                        currentQuery = null;
+                    } else {
+                        // Got another answer, send it and wait for more
+                        self.postMessage({
+                            type: "answer",
+                            bindings: peek.value.bindings
+                        });
+                        count++;
+
+                        if (!currentQuery.done) {
+                            self.postMessage({
+                                type: "waiting",
+                                hasMore: true,
+                                count: count
+                            });
+                        }
+                    }
                 }
             }
 
