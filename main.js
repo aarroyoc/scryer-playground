@@ -1,5 +1,6 @@
 import { formatValue, formatBindings } from './format.js';
 import { demos } from './demos.js';
+import { encodeSnippet, decodeSnippet, updateHash } from './hash.js';
 
 let ready = false;
 let executing = false;
@@ -8,31 +9,6 @@ let currentResultDiv = null;
 let currentOutputPre = null;
 let answerCount = 0;
 let lastAnswerWasFalse = false;
-
-// Helper functions for URL hash encoding/decoding
-function encodeSnippet(code, query) {
-	const params = new URLSearchParams();
-	params.set('code', btoa(encodeURIComponent(code)));
-	params.set('query', btoa(encodeURIComponent(query)));
-	return params.toString();
-}
-
-function decodeSnippet(hash) {
-	const params = new URLSearchParams(hash);
-	const code = params.get('code');
-	const query = params.get('query');
-	if (code && query) {
-		return {
-			code: decodeURIComponent(atob(code)),
-			query: decodeURIComponent(atob(query))
-		};
-	}
-	return null;
-}
-
-function updateHash(code, query) {
-	window.location.hash = encodeSnippet(code, query);
-}
 
 window.onload = () => {
 	let worker = new Worker("worker.js", {type: "module"});
