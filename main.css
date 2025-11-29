@@ -6,6 +6,33 @@ h1 {
   border-bottom-color: #00007F;
   border-bottom-style: solid;
   border-bottom-width: 10px;
+  margin-bottom: 10px;
+}
+
+#demos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+#demo-buttons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.demo-button {
+  padding: 5px 10px;
+  background-color: #00007F;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.demo-button:hover {
+  background-color: #0000A0;
 }
 
 textarea, input {
@@ -16,6 +43,8 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 70svh;
+  max-width: 100vw;
+  overflow: hidden;
 }
 
 #source {
@@ -29,10 +58,15 @@ main {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .output {
   margin-left: 30px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
 
@@ -44,7 +78,8 @@ main {
 #history {
   padding-top: 10px;
   max-height: inherit;
-  overflow-y: scroll;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #result {
